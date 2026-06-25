@@ -50,7 +50,8 @@ ftxui::Component make_tag_editor(App* app) {
     auto component = CatchEvent(fields_with_dirty, [app, sync_strings, parse_strings](Event ev) {
         // Switch focus back to browser
         if (ev == Event::Tab) {
-            app->focus = AppFocus::Browser;
+            app->focus     = AppFocus::Browser;
+            app->focus_tab = 0;
             return true;
         }
 

@@ -118,7 +118,8 @@ ftxui::Component make_online_dialog(App* app) {
     auto act_btns  = Container::Horizontal({btn_use, btn_cover, btn_close});
     auto all       = Container::Vertical({top_btns, menu_results, act_btns});
 
-    return Renderer(all, [app, st, all]() {
+    // Capture all sub-components by value (shared_ptr) so Render() is accessible.
+    return Renderer(all, [=]() {
         // Rebuild result labels under mutex
         {
             std::lock_guard<std::mutex> lk(app->online_mutex);
@@ -135,8 +136,7 @@ ftxui::Component make_online_dialog(App* app) {
         rows.push_back(text("Online Metadata Search") | bold | center);
         rows.push_back(separator());
 
-        // Search mode buttons
-        rows.push_back(hbox({btn_by_tag->Render(), text("  "), btn_by_fp->Render()}));
+        rows.push_back(hbox(btn_by_tag->Render(), text("  "), btn_by_fp->Render()));
 
         if (app->online_searching.load()) {
             rows.push_back(text("  Searching...") | color(Color::Yellow));
@@ -146,10 +146,7 @@ ftxui::Component make_online_dialog(App* app) {
             rows.push_back(separator());
             rows.push_back(menu_results->Render() | size(HEIGHT, LESS_THAN, 10));
             rows.push_back(separator());
-            rows.push_back(hbox({
-                btn_use->Render(), text(" "),
-                btn_cover->Render(),
-            }));
+            rows.push_back(hbox(btn_use->Render(), text(" "), btn_cover->Render()));
         }
 
         rows.push_back(separator());

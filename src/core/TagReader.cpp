@@ -3,11 +3,11 @@
 #include <taglib/fileref.h>
 #include <taglib/tag.h>
 #include <taglib/audioproperties.h>
-#include <taglib/tpropertymap.h>
+#include <taglib/toolkit/tpropertymap.h>
 
 // TagLib 2.x complex properties (cover art)
-#include <taglib/tfile.h>
-#include <taglib/tvariant.h>
+#include <taglib/toolkit/tfile.h>
+#include <taglib/toolkit/tvariant.h>
 
 static std::string tstring_to_utf8(const TagLib::String& s) {
     return s.to8Bit(true);

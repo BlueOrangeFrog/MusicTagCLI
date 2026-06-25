@@ -28,8 +28,9 @@ ftxui::Component make_cover_dialog(App* app) {
         std::ifstream f(*path_str, std::ios::binary);
         if (!f) { *error = "Cannot open file."; return; }
 
+        // Extra parens on first arg avoid the vexing-parse ambiguity.
         std::vector<uint8_t> bytes(
-            std::istreambuf_iterator<char>(f),
+            (std::istreambuf_iterator<char>(f)),
             std::istreambuf_iterator<char>());
 
         if (bytes.empty()) { *error = "File is empty."; return; }

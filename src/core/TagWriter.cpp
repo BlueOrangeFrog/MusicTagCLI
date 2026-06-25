@@ -2,9 +2,9 @@
 
 #include <taglib/fileref.h>
 #include <taglib/tag.h>
-#include <taglib/tfile.h>
-#include <taglib/tvariant.h>
-#include <taglib/tpropertymap.h>
+#include <taglib/toolkit/tfile.h>
+#include <taglib/toolkit/tvariant.h>
+#include <taglib/toolkit/tpropertymap.h>
 
 static TagLib::String to_tstring(const std::string& s) {
     return TagLib::String(s, TagLib::String::UTF8);

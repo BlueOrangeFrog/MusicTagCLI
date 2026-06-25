@@ -20,14 +20,12 @@ ftxui::Component make_confirm_dialog(
 
     auto buttons = Container::Horizontal({btn_yes, btn_no});
 
-    return Renderer(buttons, [message, buttons]() {
-        return vbox({
+    // Capture btn_yes/btn_no explicitly — they are not captured via `buttons`.
+    return Renderer(buttons, [message, buttons, btn_yes, btn_no]() {
+        return vbox(Elements{
             text(message) | bold | center,
             separator(),
-            hbox({
-                btn_yes->Render() | flex,
-                btn_no->Render()  | flex,
-            }),
+            hbox(btn_yes->Render() | flex, btn_no->Render() | flex),
         }) | border | size(WIDTH, GREATER_THAN, 40);
     });
 }

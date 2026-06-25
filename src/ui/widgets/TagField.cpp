@@ -20,10 +20,11 @@ ftxui::Component make_tag_field(const std::string& label,
         };
     }
 
-    auto input = Input(value, "", opt);
+    auto placeholder = std::make_shared<std::string>();
+    auto input = Input(value, *placeholder, opt);
 
-    // Wrap the input in a Renderer that adds the label
-    return Renderer(input, [label, label_width, input]() {
+    // Capture placeholder so it stays alive as long as the component does.
+    return Renderer(input, [label, label_width, input, placeholder]() {
         return hbox({
             text(label) | size(WIDTH, EQUAL, label_width),
             text(" : "),

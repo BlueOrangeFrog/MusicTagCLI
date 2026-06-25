@@ -13,7 +13,7 @@ add_library(musictagcli_core OBJECT
     ${CMAKE_SOURCE_DIR}/src/app/KeyBindings.cpp
 )
 target_include_directories(musictagcli_core PUBLIC ${CMAKE_SOURCE_DIR}/src)
-target_link_libraries(musictagcli_core PUBLIC TagLib::tag)
+target_link_libraries(musictagcli_core PUBLIC TagLib::TagLib)
 target_compile_features(musictagcli_core PUBLIC cxx_std_17)
 
 function(add_test_exe name src)

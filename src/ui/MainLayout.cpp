@@ -90,8 +90,7 @@ ftxui::Component make_main_layout(App* app, ScreenInteractive& screen) {
 
     // Main content: dual-panel layout
     // Focus routing: only the active panel responds to events.
-    auto panels = Container::Tab({browser, editor},
-                                  reinterpret_cast<int*>(&app->focus));
+    auto panels = Container::Tab({browser, editor}, &app->focus_tab);
 
     auto content = Renderer(panels, [app, browser, editor, statusbar]() {
         return vbox({

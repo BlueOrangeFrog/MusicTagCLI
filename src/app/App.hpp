@@ -27,7 +27,8 @@ struct App {
     bool                   dirty = false;  // edited_tag != loaded_tag
 
     // ── Focus ─────────────────────────────────────────────────────────────
-    AppFocus focus = AppFocus::Browser;
+    AppFocus focus     = AppFocus::Browser;
+    int      focus_tab = 0;  // mirrors focus for Container::Tab (0=Browser, 1=Editor)
 
     // ── Dialog flags ──────────────────────────────────────────────────────
     bool show_confirm_dialog = false;

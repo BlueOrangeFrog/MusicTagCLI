@@ -2,8 +2,8 @@
 #include <string>
 #include <optional>
 
-// HTTPS support — requires OpenSSL (compile definition set in CMakeLists.txt)
-#define CPPHTTPLIB_OPENSSL_SUPPORT
+// HTTPS support — CPPHTTPLIB_OPENSSL_SUPPORT is set via target_compile_definitions
+// in CMakeLists.txt; do not redefine it here.
 #include <httplib.h>
 
 struct HttpResponse {

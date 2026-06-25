@@ -122,7 +122,8 @@ ftxui::Component make_file_browser(
 
         // Switch focus to editor
         if (ev == Event::Tab) {
-            app->focus = AppFocus::Editor;
+            app->focus     = AppFocus::Editor;
+            app->focus_tab = 1;
             return true;
         }
 
