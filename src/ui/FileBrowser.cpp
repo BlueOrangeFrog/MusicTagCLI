@@ -54,29 +54,19 @@ ftxui::Component make_file_browser(
     auto menu = Menu(labels.get(), selected_idx.get(), opt);
 
     auto component = CatchEvent(menu, [app, labels, selected_idx, sync,
-                                       on_file_selected, request_quit](Event ev) {
+                                       on_file_selected, request_quit, menu](Event ev) {
         sync();
 
         int& cursor = app->browser_cursor;
         int  n      = static_cast<int>(app->entries.size());
 
-        // Navigation
-        if (ev == Event::ArrowDown || ev == Event::Character('j')) {
-            if (cursor < n - 1) { ++cursor; *selected_idx = cursor; }
-            if (cursor < static_cast<int>(app->entries.size())) {
-                const auto& e = app->entries[cursor];
-                if (!e.is_dir && e.is_audio) on_file_selected(e);
-            }
-            return true;
-        }
-        if (ev == Event::ArrowUp || ev == Event::Character('k')) {
-            if (cursor > 0) { --cursor; *selected_idx = cursor; }
-            if (cursor < static_cast<int>(app->entries.size())) {
-                const auto& e = app->entries[cursor];
-                if (!e.is_dir && e.is_audio) on_file_selected(e);
-            }
-            return true;
-        }
+        // Vim-style keys: delegate to menu so it updates its internal focus
+        // pointer and yframe scrolls correctly. Arrow keys are NOT intercepted
+        // here — they fall through to menu naturally (return false below).
+        if (ev == Event::Character('j'))
+            return menu->OnEvent(Event::ArrowDown);
+        if (ev == Event::Character('k'))
+            return menu->OnEvent(Event::ArrowUp);
 
         // Enter directory or load file
         if (ev == Event::Return || ev == Event::ArrowRight) {
