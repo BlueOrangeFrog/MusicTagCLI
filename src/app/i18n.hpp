@@ -70,6 +70,8 @@ inline std::string t(const char* key) {
          "Tag precompilati \xe2\x80\x94 premi F2 per salvare."},
         {"No cover art available for this release.",   "Nessuna copertina disponibile per questa release."},
         {"Cover art downloaded.",                      "Copertina scaricata."},
+        {"From filename",       "Da nome file"},
+        {"Parsed from path: ", "Estratto dal percorso: "},
         // KeyBindings action descriptions
         {"Navigate files",             "Naviga file"},
         {"Enter directory",            "Entra nella directory"},

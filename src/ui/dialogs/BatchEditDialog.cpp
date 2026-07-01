@@ -8,7 +8,6 @@
 using namespace ftxui;
 
 ftxui::Component make_batch_dialog(App* app) {
-    // State stored in shared_ptr so it outlives the lambda captures
     struct State {
         TagData draft;
         std::array<bool, 8> checked = {true,true,true,true,true,true,true,false};
@@ -18,31 +17,25 @@ ftxui::Component make_batch_dialog(App* app) {
 
     static const std::array<const char*, 8> FIELD_NAMES =
         {"title","artist","album","year","track","genre","comment","cover"};
-    static const std::array<const char*, 8> LABELS =
-        {"Title","Artist","Album","Year","Track","Genre","Comment","Cover"};
 
-    // Checkboxes
+    // Checkboxes with NO label — the label is shown by the adjacent input field.
     std::vector<Component> checkboxes;
-    for (int i = 0; i < 8; ++i) {
-        checkboxes.push_back(Checkbox(t(LABELS[i]), &st->checked[i]));
-    }
+    for (int i = 0; i < 8; ++i)
+        checkboxes.push_back(Checkbox("", &st->checked[i]));
 
     // Input fields (year/track are digits-only)
+    auto year_str  = std::make_shared<std::string>();
+    auto track_str = std::make_shared<std::string>();
     std::vector<Component> inputs;
     inputs.push_back(make_tag_field(t("Title"),   &st->draft.title));
     inputs.push_back(make_tag_field(t("Artist"),  &st->draft.artist));
     inputs.push_back(make_tag_field(t("Album"),   &st->draft.album));
-
-    // Convert year/track to string for editing
-    auto year_str  = std::make_shared<std::string>();
-    auto track_str = std::make_shared<std::string>();
     inputs.push_back(make_tag_field(t("Year"),    year_str.get(),  true));
     inputs.push_back(make_tag_field(t("Track"),   track_str.get(), true));
     inputs.push_back(make_tag_field(t("Genre"),   &st->draft.genre));
     inputs.push_back(make_tag_field(t("Comment"), &st->draft.comment));
 
     auto btn_apply = Button(t("Apply"), [app, st, year_str, track_str]() {
-        // Parse year/track
         try { st->draft.year  = static_cast<uint32_t>(std::stoul(*year_str));  } catch (...) {}
         try { st->draft.track = static_cast<uint32_t>(std::stoul(*track_str)); } catch (...) {}
 
@@ -63,24 +56,40 @@ ftxui::Component make_batch_dialog(App* app) {
         app->show_batch_dialog = false;
     });
 
-    // Build rows: checkbox + input side by side
-    std::vector<Component> rows;
-    for (int i = 0; i < static_cast<int>(inputs.size()); ++i) {
-        rows.push_back(Container::Horizontal({checkboxes[i], inputs[i]}));
-    }
-    rows.push_back(Container::Horizontal({btn_apply, btn_cancel}));
+    // Focus tree: inputs FIRST so the dialog opens with cursor in the first
+    // text field. Checkboxes come after (Tab past all inputs reaches them).
+    // The render lambda shows them interleaved visually: [cb][label : input].
+    auto inputs_col     = Container::Vertical(std::vector<Component>(inputs.begin(), inputs.end()));
+    auto checkboxes_col = Container::Vertical(std::vector<Component>(checkboxes.begin(), checkboxes.end()));
+    auto btn_row        = Container::Horizontal({btn_apply, btn_cancel});
+    auto all            = Container::Vertical({inputs_col, checkboxes_col, btn_row});
 
-    auto all = Container::Vertical(rows);
-
-    return Renderer(all, [app, st, all]() {
+    return Renderer(all, [app, st, checkboxes, inputs, btn_apply, btn_cancel]() {
         int n = static_cast<int>(app->selected_indices.size());
         std::string title_str = t("Batch Edit \xe2\x80\x94 ")
             + (n > 0 ? std::to_string(n) + t(" files") : t("current file"));
 
-        return vbox({
-            text(title_str) | bold | center,
-            separator(),
-            all->Render(),
-        }) | border | size(WIDTH, GREATER_THAN, 55);
+        // Each row: [checkbox indicator] [Label : input value]
+        Elements field_rows;
+        for (int i = 0; i < static_cast<int>(inputs.size()); ++i) {
+            field_rows.push_back(hbox(
+                checkboxes[i]->Render(),
+                inputs[i]->Render() | flex
+            ));
+        }
+        // Cover: checkbox only (cover bytes are managed via F5 in the tag editor)
+        field_rows.push_back(hbox(
+            checkboxes[7]->Render(),
+            text(t("Cover")) | color(Color::GrayLight)
+        ));
+
+        Elements rows;
+        rows.push_back(text(title_str) | bold | center);
+        rows.push_back(separator());
+        rows.push_back(vbox(field_rows));
+        rows.push_back(separator());
+        rows.push_back(hbox(btn_apply->Render(), text("  "), btn_cancel->Render()) | center);
+
+        return vbox(rows) | border | size(WIDTH, GREATER_THAN, 55);
     });
 }

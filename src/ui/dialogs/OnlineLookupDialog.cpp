@@ -2,6 +2,7 @@
 #include "online/MusicBrainzClient.hpp"
 #include "online/AcoustIdClient.hpp"
 #include "online/CoverArtClient.hpp"
+#include "core/FilenameParser.hpp"
 #include "app/i18n.hpp"
 #include <ftxui/dom/elements.hpp>
 #include <thread>
@@ -26,12 +27,12 @@ static std::string load_acoustid_key() {
 ftxui::Component make_online_dialog(App* app) {
     struct State {
         int  result_cursor  = 0;
-        bool mode_tag       = true;   // false = fingerprint
+        bool mode_tag       = true;
         std::vector<std::string> result_labels;
     };
     auto st = std::make_shared<State>();
 
-    auto btn_by_tag  = Button(t("Search by Tags"),        [app, st]() {
+    auto btn_by_tag = Button(t("Search by Tags"), [app, st]() {
         st->mode_tag = true;
         app->online_results.clear();
         app->online_error.clear();
@@ -66,6 +67,44 @@ ftxui::Component make_online_dialog(App* app) {
             app->online_results = std::move(r);
             if (app->online_results.empty() && app->online_error.empty())
                 app->online_error = err.empty() ? t("No results found.") : err;
+            app->online_searching.store(false);
+        }).detach();
+    });
+
+    // Parse filename + parent directory → extract title/artist/album/track/year
+    // and immediately search MusicBrainz with the parsed values.
+    auto btn_by_name = Button(t("From filename"), [app, st]() {
+        if (app->current_file.empty()) {
+            std::lock_guard<std::mutex> lk(app->online_mutex);
+            app->online_error = t("No file loaded.");
+            return;
+        }
+        st->mode_tag = true;
+        app->online_results.clear();
+        app->online_error.clear();
+        app->online_searching.store(true);
+
+        std::filesystem::path path = app->current_file;
+        std::thread([app, path]() {
+            TagData parsed;
+            FilenameParser::parse_path_metadata(path, parsed);
+
+            // Show what was extracted in the error field temporarily
+            // (reuse the field as an info line; will be cleared on results)
+            {
+                std::lock_guard<std::mutex> lk(app->online_mutex);
+                if (!parsed.title.empty() || !parsed.artist.empty()) {
+                    app->online_error = t("Parsed from path: ")
+                        + (parsed.artist.empty() ? "" : parsed.artist + " / ")
+                        + parsed.title;
+                }
+            }
+
+            auto r = MusicBrainzClient::search(parsed.title, parsed.artist, parsed.album);
+            std::lock_guard<std::mutex> lk(app->online_mutex);
+            app->online_results = std::move(r);
+            if (app->online_results.empty()) app->online_error = t("No results found.");
+            else app->online_error.clear();
             app->online_searching.store(false);
         }).detach();
     });
@@ -115,19 +154,17 @@ ftxui::Component make_online_dialog(App* app) {
         app->show_online_dialog = false;
     });
 
-    auto top_btns  = Container::Horizontal({btn_by_tag, btn_by_fp});
-    auto act_btns  = Container::Horizontal({btn_use, btn_cover, btn_close});
-    auto all       = Container::Vertical({top_btns, menu_results, act_btns});
+    auto top_btns = Container::Horizontal({btn_by_tag, btn_by_fp, btn_by_name});
+    auto act_btns = Container::Horizontal({btn_use, btn_cover, btn_close});
+    auto all      = Container::Vertical({top_btns, menu_results, act_btns});
 
-    // Capture all sub-components by value (shared_ptr) so Render() is accessible.
     return Renderer(all, [=]() {
-        // Rebuild result labels under mutex
         {
             std::lock_guard<std::mutex> lk(app->online_mutex);
             st->result_labels.clear();
             for (const auto& r : app->online_results) {
                 char buf[256];
-                std::snprintf(buf, sizeof(buf), "[%.0f%%] %s — %s (%s)",
+                std::snprintf(buf, sizeof(buf), "[%.0f%%] %s \xe2\x80\x94 %s (%s)",
                     r.score * 100, r.title.c_str(), r.artist.c_str(), r.year.c_str());
                 st->result_labels.emplace_back(buf);
             }
@@ -136,8 +173,11 @@ ftxui::Component make_online_dialog(App* app) {
         Elements rows;
         rows.push_back(text(t("Online Metadata Search")) | bold | center);
         rows.push_back(separator());
-
-        rows.push_back(hbox(btn_by_tag->Render(), text("  "), btn_by_fp->Render()));
+        rows.push_back(hbox(
+            btn_by_tag->Render(), text("  "),
+            btn_by_fp->Render(),  text("  "),
+            btn_by_name->Render()
+        ));
 
         if (app->online_searching.load()) {
             rows.push_back(text(t("  Searching...")) | color(Color::Yellow));
