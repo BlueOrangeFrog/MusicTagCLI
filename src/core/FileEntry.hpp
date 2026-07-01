@@ -2,7 +2,7 @@
 #include <filesystem>
 #include <string>
 
-enum class AudioFormat { MP3, FLAC, OGG, M4A, OPUS, Unknown };
+enum class AudioFormat { MP3, FLAC, OGG, M4A, OPUS, WAV, Unknown };
 
 inline const char* format_label(AudioFormat f) {
     switch (f) {
@@ -11,6 +11,7 @@ inline const char* format_label(AudioFormat f) {
         case AudioFormat::OGG:  return "OGG";
         case AudioFormat::M4A:  return "M4A";
         case AudioFormat::OPUS: return "OPS";
+        case AudioFormat::WAV:  return "WAV";
         default:                return "   ";
     }
 }

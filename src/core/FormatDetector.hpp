@@ -13,6 +13,7 @@ inline AudioFormat detect_format(const std::filesystem::path& p) {
     if (ext == ".m4a" || ext == ".aac"
         || ext == ".m4b" || ext == ".mp4")    return AudioFormat::M4A;
     if (ext == ".opus")                       return AudioFormat::OPUS;
+    if (ext == ".wav" || ext == ".wave")      return AudioFormat::WAV;
     return AudioFormat::Unknown;
 }
 

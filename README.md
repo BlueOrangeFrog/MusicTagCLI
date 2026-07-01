@@ -54,6 +54,7 @@ MusicTagCLI is an interactive terminal application for reading and editing audio
 | OGG Vorbis | `.ogg`, `.oga` | Vorbis Comments |
 | Opus | `.opus` | Vorbis Comments |
 | M4A / AAC | `.m4a`, `.aac`, `.mp4` | MP4 atoms (iTunes-compatible) |
+| WAV | `.wav`, `.wave` | ID3v2 (RIFF INFO chunk) |
 
 Additional formats are available through TagLib (APE, WavPack, AIFF, WAV, etc.).
 
