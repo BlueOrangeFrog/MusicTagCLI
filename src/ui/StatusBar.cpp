@@ -1,4 +1,5 @@
 #include "StatusBar.hpp"
+#include "app/i18n.hpp"
 #include <ftxui/dom/elements.hpp>
 
 using namespace ftxui;
@@ -13,9 +14,9 @@ ftxui::Component make_status_bar(App* app) {
         // Center: context hints
         std::string hints;
         if (app->focus == AppFocus::Browser)
-            hints = "F1=Help  F2=Save  F5=Batch  F6=Online  F10=Quit";
+            hints = t("F1=Help  F2=Save  F5=Batch  F6=Online  F10=Quit");
         else
-            hints = "F1=Help  F2=Save  F6=Online  ESC=Cancel  Tab=Switch";
+            hints = t("F1=Help  F2=Save  F6=Online  ESC=Cancel  Tab=Switch");
 
         // Right: audio info
         std::string right = app->loaded_tag.audio_info();

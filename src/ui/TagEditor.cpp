@@ -1,6 +1,7 @@
 #include "TagEditor.hpp"
 #include "core/TagWriter.hpp"
 #include "ui/widgets/TagField.hpp"
+#include "app/i18n.hpp"
 #include <ftxui/component/component_options.hpp>
 #include <ftxui/component/event.hpp>
 #include <ftxui/dom/elements.hpp>
@@ -27,13 +28,13 @@ ftxui::Component make_tag_editor(App* app) {
         catch (...) { app->edited_tag.track = 0; }
     };
 
-    auto f_title   = make_tag_field("Title",   &app->edited_tag.title);
-    auto f_artist  = make_tag_field("Artist",  &app->edited_tag.artist);
-    auto f_album   = make_tag_field("Album",   &app->edited_tag.album);
-    auto f_year    = make_tag_field("Year",    year_str.get(),  true);
-    auto f_track   = make_tag_field("Track",   track_str.get(), true);
-    auto f_genre   = make_tag_field("Genre",   &app->edited_tag.genre);
-    auto f_comment = make_tag_field("Comment", &app->edited_tag.comment);
+    auto f_title   = make_tag_field(t("Title"),   &app->edited_tag.title);
+    auto f_artist  = make_tag_field(t("Artist"),  &app->edited_tag.artist);
+    auto f_album   = make_tag_field(t("Album"),   &app->edited_tag.album);
+    auto f_year    = make_tag_field(t("Year"),    year_str.get(),  true);
+    auto f_track   = make_tag_field(t("Track"),   track_str.get(), true);
+    auto f_genre   = make_tag_field(t("Genre"),   &app->edited_tag.genre);
+    auto f_comment = make_tag_field(t("Comment"), &app->edited_tag.comment);
 
     auto fields = Container::Vertical({
         f_title, f_artist, f_album, f_year, f_track, f_genre, f_comment,
@@ -58,16 +59,16 @@ ftxui::Component make_tag_editor(App* app) {
         // F2: save
         if (ev == Event::F2) {
             if (app->current_file.empty()) {
-                app->set_status("No file loaded.");
+                app->set_status(t("No file loaded."));
                 return true;
             }
             parse_strings();
             if (TagWriter::write(app->edited_tag, app->current_file)) {
                 app->loaded_tag = app->edited_tag;
                 app->dirty      = false;
-                app->set_status("Saved: " + app->current_file.filename().string());
+                app->set_status(t("Saved: ") + app->current_file.filename().string());
             } else {
-                app->set_status("ERROR: could not write tags to file.");
+                app->set_status(t("ERROR: could not write tags to file."));
             }
             return true;
         }
@@ -81,7 +82,7 @@ ftxui::Component make_tag_editor(App* app) {
         // ESC: discard changes
         if (ev == Event::Escape) {
             if (app->dirty) {
-                app->confirm_message = "Discard unsaved changes?";
+                app->confirm_message = t("Discard unsaved changes?");
                 app->confirm_yes = [app, sync_strings]() {
                     app->edited_tag = app->loaded_tag;
                     app->dirty = false;
@@ -114,7 +115,7 @@ ftxui::Component make_tag_editor(App* app) {
             header += app->current_file.filename().string();
             if (app->dirty) header += " [*]";
         } else {
-            header += "(no file selected)";
+            header += t("(no file selected)");
         }
 
         // Cover art info row
@@ -123,7 +124,7 @@ ftxui::Component make_tag_editor(App* app) {
             cover_info = app->edited_tag.cover_mime
                        + " (" + std::to_string(app->edited_tag.cover_bytes.size() / 1024) + " KB)";
         } else {
-            cover_info = "(no cover art)";
+            cover_info = t("(no cover art)");
         }
 
         return vbox({
@@ -132,11 +133,11 @@ ftxui::Component make_tag_editor(App* app) {
             component->Render(),
             separator(),
             hbox({
-                text("Cover  : ") | size(WIDTH, EQUAL, 10),
+                text(t("Cover  : ")) | size(WIDTH, EQUAL, 12),
                 text(" : "),
                 text(cover_info) | color(app->edited_tag.cover_bytes.empty()
                                          ? Color::GrayDark : Color::Green),
-                text("  [F5=CoverArt]") | color(Color::GrayLight),
+                text(t("  [F5=CoverArt]")) | color(Color::GrayLight),
             }),
         }) | border | (focused ? color(Color::White) : color(Color::GrayDark));
     });

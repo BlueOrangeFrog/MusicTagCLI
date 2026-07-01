@@ -1,4 +1,5 @@
 #include "CoverArtDialog.hpp"
+#include "app/i18n.hpp"
 #include <ftxui/dom/elements.hpp>
 #include <fstream>
 #include <iterator>
@@ -21,23 +22,24 @@ ftxui::Component make_cover_dialog(App* app) {
     auto path_str = std::make_shared<std::string>();
     auto error    = std::make_shared<std::string>();
 
-    auto input = Input(path_str.get(), "/path/to/cover.jpg");
+    static const std::string cover_placeholder = t("/path/to/cover.jpg");
+    auto input = Input(path_str.get(), cover_placeholder);
 
-    auto btn_load = Button("Load", [app, path_str, error]() {
+    auto btn_load = Button(t("Load"), [app, path_str, error]() {
         error->clear();
         std::ifstream f(*path_str, std::ios::binary);
-        if (!f) { *error = "Cannot open file."; return; }
+        if (!f) { *error = t("Cannot open file."); return; }
 
         // Extra parens on first arg avoid the vexing-parse ambiguity.
         std::vector<uint8_t> bytes(
             (std::istreambuf_iterator<char>(f)),
             std::istreambuf_iterator<char>());
 
-        if (bytes.empty()) { *error = "File is empty."; return; }
+        if (bytes.empty()) { *error = t("File is empty."); return; }
 
         std::string mime = detect_mime(bytes);
         if (mime == "application/octet-stream") {
-            *error = "Unsupported format (expected JPEG or PNG).";
+            *error = t("Unsupported format (expected JPEG or PNG).");
             return;
         }
 
@@ -47,14 +49,14 @@ ftxui::Component make_cover_dialog(App* app) {
         app->show_cover_dialog = false;
     });
 
-    auto btn_remove = Button("Remove", [app]() {
+    auto btn_remove = Button(t("Remove"), [app]() {
         app->edited_tag.cover_bytes.clear();
         app->edited_tag.cover_mime.clear();
         app->dirty = (app->edited_tag != app->loaded_tag);
         app->show_cover_dialog = false;
     });
 
-    auto btn_cancel = Button("Cancel", [app]() {
+    auto btn_cancel = Button(t("Cancel"), [app]() {
         app->show_cover_dialog = false;
     });
 
@@ -63,9 +65,9 @@ ftxui::Component make_cover_dialog(App* app) {
 
     return Renderer(all, [all, error]() {
         Elements rows;
-        rows.push_back(text("Cover Art") | bold | center);
+        rows.push_back(text(t("Cover Art")) | bold | center);
         rows.push_back(separator());
-        rows.push_back(text("Image path:"));
+        rows.push_back(text(t("Image path:")));
         rows.push_back(all->Render());
         if (!error->empty())
             rows.push_back(text(*error) | color(Color::Red));

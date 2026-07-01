@@ -2,6 +2,7 @@
 #include "online/MusicBrainzClient.hpp"
 #include "online/AcoustIdClient.hpp"
 #include "online/CoverArtClient.hpp"
+#include "app/i18n.hpp"
 #include <ftxui/dom/elements.hpp>
 #include <thread>
 #include <atomic>
@@ -30,7 +31,7 @@ ftxui::Component make_online_dialog(App* app) {
     };
     auto st = std::make_shared<State>();
 
-    auto btn_by_tag  = Button("Search by Tags",        [app, st]() {
+    auto btn_by_tag  = Button(t("Search by Tags"),        [app, st]() {
         st->mode_tag = true;
         app->online_results.clear();
         app->online_error.clear();
@@ -42,15 +43,15 @@ ftxui::Component make_online_dialog(App* app) {
                 app->edited_tag.album);
             std::lock_guard<std::mutex> lk(app->online_mutex);
             app->online_results = std::move(r);
-            if (app->online_results.empty()) app->online_error = "No results found.";
+            if (app->online_results.empty()) app->online_error = t("No results found.");
             app->online_searching.store(false);
         }).detach();
     });
 
-    auto btn_by_fp = Button("Search by Fingerprint", [app, st]() {
+    auto btn_by_fp = Button(t("Search by Fingerprint"), [app, st]() {
         if (app->current_file.empty()) {
             std::lock_guard<std::mutex> lk(app->online_mutex);
-            app->online_error = "No file loaded.";
+            app->online_error = t("No file loaded.");
             return;
         }
         st->mode_tag = false;
@@ -64,14 +65,14 @@ ftxui::Component make_online_dialog(App* app) {
             std::lock_guard<std::mutex> lk(app->online_mutex);
             app->online_results = std::move(r);
             if (app->online_results.empty() && app->online_error.empty())
-                app->online_error = err.empty() ? "No results found." : err;
+                app->online_error = err.empty() ? t("No results found.") : err;
             app->online_searching.store(false);
         }).detach();
     });
 
     auto menu_results = Menu(&st->result_labels, &st->result_cursor);
 
-    auto btn_use = Button("Use this", [app, st]() {
+    auto btn_use = Button(t("Use this"), [app, st]() {
         std::lock_guard<std::mutex> lk(app->online_mutex);
         if (st->result_cursor < static_cast<int>(app->online_results.size())) {
             const auto& r = app->online_results[st->result_cursor];
@@ -87,12 +88,12 @@ ftxui::Component make_online_dialog(App* app) {
                 catch (...) {}
             }
             app->dirty = (app->edited_tag != app->loaded_tag);
-            app->set_status("Tags pre-filled — press F2 to save.");
+            app->set_status(t("Tags pre-filled \xe2\x80\x94 press F2 to save."));
             app->show_online_dialog = false;
         }
     });
 
-    auto btn_cover = Button("Download Cover", [app, st]() {
+    auto btn_cover = Button(t("Download Cover"), [app, st]() {
         std::lock_guard<std::mutex> lk(app->online_mutex);
         if (st->result_cursor < static_cast<int>(app->online_results.size())) {
             const std::string mbid = app->online_results[st->result_cursor].mbid;
@@ -102,15 +103,15 @@ ftxui::Component make_online_dialog(App* app) {
                     app->edited_tag.cover_bytes = std::move(*bytes);
                     app->edited_tag.cover_mime  = "image/jpeg";
                     app->dirty = (app->edited_tag != app->loaded_tag);
-                    app->set_status("Cover art downloaded.");
+                    app->set_status(t("Cover art downloaded."));
                 } else {
-                    app->set_status("No cover art available for this release.");
+                    app->set_status(t("No cover art available for this release."));
                 }
             }).detach();
         }
     });
 
-    auto btn_close = Button("Close", [app]() {
+    auto btn_close = Button(t("Close"), [app]() {
         app->show_online_dialog = false;
     });
 
@@ -133,13 +134,13 @@ ftxui::Component make_online_dialog(App* app) {
         }
 
         Elements rows;
-        rows.push_back(text("Online Metadata Search") | bold | center);
+        rows.push_back(text(t("Online Metadata Search")) | bold | center);
         rows.push_back(separator());
 
         rows.push_back(hbox(btn_by_tag->Render(), text("  "), btn_by_fp->Render()));
 
         if (app->online_searching.load()) {
-            rows.push_back(text("  Searching...") | color(Color::Yellow));
+            rows.push_back(text(t("  Searching...")) | color(Color::Yellow));
         } else if (!app->online_error.empty()) {
             rows.push_back(text(app->online_error) | color(Color::Red));
         } else if (!st->result_labels.empty()) {

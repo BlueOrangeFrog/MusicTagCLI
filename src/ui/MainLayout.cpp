@@ -7,6 +7,7 @@
 #include "dialogs/CoverArtDialog.hpp"
 #include "dialogs/OnlineLookupDialog.hpp"
 #include "app/KeyBindings.hpp"
+#include "app/i18n.hpp"
 #include "core/TagReader.hpp"
 
 #include <ftxui/dom/elements.hpp>
@@ -16,14 +17,14 @@ using namespace ftxui;
 
 // Help overlay component (F1)
 static Component make_help_overlay(App* app) {
-    auto btn = Button("Close [F1]", [app]() { app->show_help_dialog = false; });
+    auto btn = Button(t("Close [F1]"), [app]() { app->show_help_dialog = false; });
 
     auto build_table = [](const KeyBinding* kb) {
         Elements rows;
         for (; kb->key; ++kb) {
             rows.push_back(hbox({
-                text(kb->key)    | size(WIDTH, EQUAL, 18) | color(Color::Cyan),
-                text(kb->action),
+                text(kb->key)      | size(WIDTH, EQUAL, 18) | color(Color::Cyan),
+                text(t(kb->action)),
             }));
         }
         return vbox(rows);
@@ -31,12 +32,12 @@ static Component make_help_overlay(App* app) {
 
     return Renderer(btn, [btn, build_table]() {
         return vbox({
-            text("Keyboard Shortcuts") | bold | center,
+            text(t("Keyboard Shortcuts")) | bold | center,
             separator(),
             hbox({
-                vbox({ text("File Browser") | bold, build_table(BROWSER_KEYS) }) | flex,
+                vbox({ text(t("File Browser")) | bold, build_table(BROWSER_KEYS) }) | flex,
                 separator(),
-                vbox({ text("Tag Editor")   | bold, build_table(EDITOR_KEYS)  }) | flex,
+                vbox({ text(t("Tag Editor"))   | bold, build_table(EDITOR_KEYS)  }) | flex,
             }),
             separator(),
             btn->Render() | center,
@@ -56,7 +57,7 @@ ftxui::Component make_main_layout(App* app, ScreenInteractive& screen) {
             app->edited_tag   = *tag;
             app->dirty        = false;
         } else {
-            app->set_status("Cannot read tags: " + e.path.filename().string());
+            app->set_status(t("Cannot read tags: ") + e.path.filename().string());
         }
     };
 

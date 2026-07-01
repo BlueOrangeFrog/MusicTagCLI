@@ -1,6 +1,7 @@
 #include "FileBrowser.hpp"
 #include "core/TagReader.hpp"
 #include "core/TagWriter.hpp"
+#include "app/i18n.hpp"
 #include <ftxui/component/component_options.hpp>
 #include <ftxui/component/event.hpp>
 #include <ftxui/dom/elements.hpp>
@@ -130,7 +131,7 @@ ftxui::Component make_file_browser(
         // F5: batch
         if (ev == Event::F5) {
             if (app->selected_indices.empty() && app->current_file.empty()) {
-                app->set_status("No files selected for batch edit.");
+                app->set_status(t("No files selected for batch edit."));
             } else {
                 app->show_batch_dialog = true;
             }
@@ -152,7 +153,7 @@ ftxui::Component make_file_browser(
         // F10: quit
         if (ev == Event::F10) {
             if (app->dirty) {
-                app->confirm_message = "Unsaved changes — quit anyway?";
+                app->confirm_message = t("Unsaved changes \xe2\x80\x94 quit anyway?");
                 app->confirm_yes = request_quit;
                 app->show_confirm_dialog = true;
             } else {
@@ -169,7 +170,7 @@ ftxui::Component make_file_browser(
         int sel_count = static_cast<int>(app->selected_indices.size());
         std::string header = " " + app->current_dir.string();
         if (sel_count > 0)
-            header += "  [" + std::to_string(sel_count) + " selected]";
+            header += "  [" + std::to_string(sel_count) + t(" selected]");
 
         bool focused = (app->focus == AppFocus::Browser);
 

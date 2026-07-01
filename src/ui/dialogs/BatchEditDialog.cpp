@@ -1,6 +1,7 @@
 #include "BatchEditDialog.hpp"
 #include "core/TagWriter.hpp"
 #include "ui/widgets/TagField.hpp"
+#include "app/i18n.hpp"
 #include <ftxui/dom/elements.hpp>
 #include <array>
 
@@ -23,24 +24,24 @@ ftxui::Component make_batch_dialog(App* app) {
     // Checkboxes
     std::vector<Component> checkboxes;
     for (int i = 0; i < 8; ++i) {
-        checkboxes.push_back(Checkbox(LABELS[i], &st->checked[i]));
+        checkboxes.push_back(Checkbox(t(LABELS[i]), &st->checked[i]));
     }
 
     // Input fields (year/track are digits-only)
     std::vector<Component> inputs;
-    inputs.push_back(make_tag_field("Title",   &st->draft.title));
-    inputs.push_back(make_tag_field("Artist",  &st->draft.artist));
-    inputs.push_back(make_tag_field("Album",   &st->draft.album));
+    inputs.push_back(make_tag_field(t("Title"),   &st->draft.title));
+    inputs.push_back(make_tag_field(t("Artist"),  &st->draft.artist));
+    inputs.push_back(make_tag_field(t("Album"),   &st->draft.album));
 
     // Convert year/track to string for editing
     auto year_str  = std::make_shared<std::string>();
     auto track_str = std::make_shared<std::string>();
-    inputs.push_back(make_tag_field("Year",    year_str.get(),  true));
-    inputs.push_back(make_tag_field("Track",   track_str.get(), true));
-    inputs.push_back(make_tag_field("Genre",   &st->draft.genre));
-    inputs.push_back(make_tag_field("Comment", &st->draft.comment));
+    inputs.push_back(make_tag_field(t("Year"),    year_str.get(),  true));
+    inputs.push_back(make_tag_field(t("Track"),   track_str.get(), true));
+    inputs.push_back(make_tag_field(t("Genre"),   &st->draft.genre));
+    inputs.push_back(make_tag_field(t("Comment"), &st->draft.comment));
 
-    auto btn_apply = Button("Apply", [app, st, year_str, track_str]() {
+    auto btn_apply = Button(t("Apply"), [app, st, year_str, track_str]() {
         // Parse year/track
         try { st->draft.year  = static_cast<uint32_t>(std::stoul(*year_str));  } catch (...) {}
         try { st->draft.track = static_cast<uint32_t>(std::stoul(*track_str)); } catch (...) {}
@@ -53,12 +54,12 @@ ftxui::Component make_batch_dialog(App* app) {
         if (!paths.empty()) {
             auto res = TagWriter::write_batch(paths, st->draft, fields);
             app->set_status("Batch: " + std::to_string(res.ok) + " ok, "
-                           + std::to_string(res.error) + " errors");
+                           + std::to_string(res.error) + t(" errors"));
         }
         app->show_batch_dialog = false;
     });
 
-    auto btn_cancel = Button("Cancel", [app]() {
+    auto btn_cancel = Button(t("Cancel"), [app]() {
         app->show_batch_dialog = false;
     });
 
@@ -73,8 +74,8 @@ ftxui::Component make_batch_dialog(App* app) {
 
     return Renderer(all, [app, st, all]() {
         int n = static_cast<int>(app->selected_indices.size());
-        std::string title_str = "Batch Edit — "
-            + (n > 0 ? std::to_string(n) + " files" : "current file");
+        std::string title_str = t("Batch Edit \xe2\x80\x94 ")
+            + (n > 0 ? std::to_string(n) + t(" files") : t("current file"));
 
         return vbox({
             text(title_str) | bold | center,

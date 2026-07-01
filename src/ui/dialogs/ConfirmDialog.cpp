@@ -1,4 +1,5 @@
 #include "ConfirmDialog.hpp"
+#include "app/i18n.hpp"
 #include <ftxui/dom/elements.hpp>
 
 using namespace ftxui;
@@ -9,11 +10,11 @@ ftxui::Component make_confirm_dialog(
     std::function<void()>  on_yes,
     std::function<void()>  on_no)
 {
-    auto btn_yes = Button("  Yes  ", [show, on_yes]() {
+    auto btn_yes = Button(t("  Yes  "), [show, on_yes]() {
         *show = false;
         if (on_yes) on_yes();
     });
-    auto btn_no = Button("  No   ", [show, on_no]() {
+    auto btn_no = Button(t("  No   "), [show, on_no]() {
         *show = false;
         if (on_no) on_no();
     });
