@@ -155,19 +155,32 @@ ftxui::Component make_file_browser(
         return false;
     });
 
-    return Renderer(component, [app, component, sync]() {
+    return Renderer(component, [app, component, sync, labels, selected_idx]() {
         sync();
         int sel_count = static_cast<int>(app->selected_indices.size());
         std::string header = " " + app->current_dir.string();
         if (sel_count > 0)
             header += "  [" + std::to_string(sel_count) + t(" selected]");
 
-        bool focused = (app->focus == AppFocus::Browser);
+        bool browser_focused = (app->focus == AppFocus::Browser);
+
+        // Build the list manually so we can always apply the `focus` decorator
+        // to the cursor row. This makes yframe scroll correctly regardless of
+        // whether FTXUI's component-focus chain reaches the inner Menu.
+        Elements rows;
+        for (int i = 0; i < static_cast<int>(labels->size()); ++i) {
+            bool is_cursor = (i == *selected_idx);
+            auto label_elem = text((*labels)[i]);
+            if (is_cursor) label_elem = label_elem | bold;
+            Element row = hbox(text(is_cursor ? ">" : " "), label_elem);
+            if (is_cursor) row = row | focus;
+            rows.push_back(std::move(row));
+        }
 
         return vbox({
             text(header) | bold | color(Color::Cyan),
             separator(),
-            component->Render() | flex,
-        }) | border | (focused ? color(Color::White) : color(Color::GrayDark));
+            vbox(rows) | flex | yframe,
+        }) | border | (browser_focused ? color(Color::White) : color(Color::GrayDark));
     });
 }
