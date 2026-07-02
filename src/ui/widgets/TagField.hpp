@@ -6,8 +6,10 @@
 // A single labelled input row: "Label  : [ value ]"
 // label_width controls the fixed column for the label.
 // digits_only: if true, rejects non-digit characters.
+// on_change: called after value is updated (after filtering); use for side-effects.
 ftxui::Component make_tag_field(
-    const std::string& label,
-    std::string*       value,
-    bool               digits_only  = false,
-    int                label_width  = 10);
+    const std::string&    label,
+    std::string*          value,
+    bool                  digits_only  = false,
+    int                   label_width  = 10,
+    std::function<void()> on_change    = nullptr);

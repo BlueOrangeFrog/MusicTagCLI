@@ -126,7 +126,8 @@ ftxui::Component make_online_dialog(App* app) {
                 try { app->edited_tag.track = static_cast<uint32_t>(std::stoul(r.track_num)); }
                 catch (...) {}
             }
-            app->dirty = (app->edited_tag != app->loaded_tag);
+            app->dirty          = (app->edited_tag != app->loaded_tag);
+            app->editor_resync  = true;  // tell TagEditor to re-sync year/track buffers
             app->set_status(t("Tags pre-filled \xe2\x80\x94 press F2 to save."));
             app->show_online_dialog = false;
         }

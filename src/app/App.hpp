@@ -25,6 +25,7 @@ struct App {
     TagData                loaded_tag;     // snapshot from disk
     TagData                edited_tag;     // mutable copy (UI works on this)
     bool                   dirty = false;  // edited_tag != loaded_tag
+    bool                   editor_resync = false; // signal renderer to re-sync year/track buffers
 
     // ── Focus ─────────────────────────────────────────────────────────────
     AppFocus focus     = AppFocus::Browser;
