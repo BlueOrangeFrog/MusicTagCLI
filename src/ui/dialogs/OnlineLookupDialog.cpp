@@ -163,10 +163,16 @@ ftxui::Component make_online_dialog(App* app) {
             std::lock_guard<std::mutex> lk(app->online_mutex);
             st->result_labels.clear();
             for (const auto& r : app->online_results) {
-                char buf[256];
-                std::snprintf(buf, sizeof(buf), "[%.0f%%] %s \xe2\x80\x94 %s (%s)",
-                    r.score * 100, r.title.c_str(), r.artist.c_str(), r.year.c_str());
-                st->result_labels.emplace_back(buf);
+                // [score%] Title — Artist | Album (Year) #track
+                std::string label = "[" + std::to_string(static_cast<int>(r.score * 100)) + "%] "
+                    + r.title + " \xe2\x80\x94 " + r.artist;
+                if (!r.album.empty())
+                    label += " | " + r.album;
+                if (!r.year.empty())
+                    label += " (" + r.year + ")";
+                if (!r.track_num.empty())
+                    label += " #" + r.track_num;
+                st->result_labels.emplace_back(std::move(label));
             }
         }
 
